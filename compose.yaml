@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: atlas-Rh
+    # restart: unless-stopped
+    environment:
+      POSTGRES_DB: atlas-Rh
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "2003"
+    ports:
+      - "127.0.0.1:5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
