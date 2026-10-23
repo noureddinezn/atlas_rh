@@ -16,4 +16,8 @@ public interface DepartmentMapper {
 
     @Mapping(target = "employeeCount", expression = "java(entity.getEmployees() != null ? entity.getEmployees().size() : 0)")
     DepartmentResponseDTO toResponseDto(Department entity);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "employees", ignore = true)
+    void updateEntityFromDto(DepartmentRequestDTO dto, @MappingTarget Department entity);
 }
