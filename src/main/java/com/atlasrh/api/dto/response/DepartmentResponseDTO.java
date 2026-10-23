@@ -3,5 +3,6 @@ package com.atlasrh.api.dto.response;
 public record DepartmentResponseDTO(
         Long id,
         String name,
-        String description) {
+        String description,
+        int employeeCount) {
 }
