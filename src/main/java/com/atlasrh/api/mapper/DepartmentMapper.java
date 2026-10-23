@@ -9,4 +9,8 @@ import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
 public interface DepartmentMapper {
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "employees", ignore = true)
+    Department toEntity(DepartmentRequestDTO dto);
 }
