@@ -2,5 +2,6 @@ package com.atlasrh.api.dto.response;
 
 public record DepartmentResponseDTO(
         Long id,
-        String name) {
+        String name,
+        String description) {
 }
