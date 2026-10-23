@@ -6,4 +6,6 @@ import com.atlasrh.api.dto.response.DepartmentResponseDTO;
 import java.util.List;
 
 public interface DepartmentService {
+
+    DepartmentResponseDTO createDepartment(DepartmentRequestDTO requestDto);
 }
