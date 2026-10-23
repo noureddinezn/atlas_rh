@@ -1,4 +1,5 @@
 package com.atlasrh.api.dto.response;
 
-public record DepartmentResponseDTO() {
+public record DepartmentResponseDTO(
+        Long id) {
 }
