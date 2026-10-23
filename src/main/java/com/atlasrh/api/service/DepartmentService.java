@@ -8,4 +8,6 @@ import java.util.List;
 public interface DepartmentService {
 
     DepartmentResponseDTO createDepartment(DepartmentRequestDTO requestDto);
+
+    DepartmentResponseDTO updateDepartment(Long id, DepartmentRequestDTO requestDto);
 }
