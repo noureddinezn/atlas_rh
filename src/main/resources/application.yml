@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: AtlasRH
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/atlasrh_db}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:2003}
+  jpa:
+    open-in-view: false
+    show-sql: true
+    hibernate:
+      ddl-auto: validate
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+  data:
+    web:
+      pageable:
+        max-page-size: 100
+server:
+  port: ${PORT:8081}
+  error:
+    include-stacktrace: never
