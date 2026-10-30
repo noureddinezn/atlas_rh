@@ -1,1 +1,13 @@
-databaseChangeLog: []
+databaseChangeLog:
+  - changeSet:
+      id: 006-seed-atlasrh
+      author: atlasrh
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO leave_types(name, days_per_year) VALUES ('ANNUEL',18),('EXCEPTIONNEL',10) ON CONFLICT (name) DO NOTHING;
+              INSERT INTO departments(name, description) VALUES ('Informatique','Equipe informatique') ON CONFLICT (name) DO NOTHING;
+              INSERT INTO employees(matricule,first_name,last_name,email,position,hire_date,department_id)
+              SELECT 'MGR001','Sara','Amrani','sara@atlasrh.test','Manager',DATE '2020-01-01',id FROM departments WHERE name='Informatique' ON CONFLICT DO NOTHING;
+              INSERT INTO employees(matricule,first_name,last_name,email,position,hire_date,department_id,manager_id)
+              SELECT 'EMP001','Youssef','Alami','youssef@atlasrh.test','Developpeur',DATE '2022-01-01',d.id,e.id FROM departments d CROSS JOIN employees e WHERE d.name='Informatique' AND e.matricule='MGR001' ON CONFLICT DO NOTHING;
