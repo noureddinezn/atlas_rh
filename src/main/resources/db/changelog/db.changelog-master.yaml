@@ -3,3 +3,5 @@ databaseChangeLog:
       file: db/changelog/changes/001-create-tables.yaml
   - include:
       file: db/changelog/changes/002-insert-seed-data.yaml
+  - include:
+      file: db/changelog/changes/003-integrity.yaml
