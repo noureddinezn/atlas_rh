@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - changeSet:
+      id: 007-integrity
+      author: atlasrh
+      changes:
+        - sql:
+            sql: |
+              CREATE UNIQUE INDEX uq_department_name_ci ON departments(lower(name));
+              CREATE UNIQUE INDEX uq_employee_matricule_ci ON employees(lower(matricule));
+              CREATE UNIQUE INDEX uq_employee_email_ci ON employees(lower(email));
+              CREATE UNIQUE INDEX uq_contract_active ON contracts(employee_id) WHERE active;
+              CREATE INDEX ix_employee_department ON employees(department_id);
+              CREATE INDEX ix_employee_manager ON employees(manager_id);
+              CREATE INDEX ix_leave_employee ON leave_requests(employee_id);
+              CREATE INDEX ix_contract_employee ON contracts(employee_id);
+              ALTER TABLE employees ADD CONSTRAINT ck_not_self_manager CHECK(manager_id <> id);
+              ALTER TABLE contracts ADD CONSTRAINT ck_contract_dates CHECK(end_date IS NULL OR end_date >= start_date);
+              ALTER TABLE contracts ADD CONSTRAINT ck_contract_type CHECK(type IN ('CDI','CDD','STAGE'));
+              ALTER TABLE contracts ADD CONSTRAINT ck_fixed_end CHECK(type='CDI' OR end_date IS NOT NULL);
+              ALTER TABLE contracts ADD CONSTRAINT ck_salary CHECK(gross_salary > 0);
+              ALTER TABLE leave_types ADD CONSTRAINT ck_allowance CHECK(days_per_year >= 0);
+              ALTER TABLE leave_requests ADD CONSTRAINT ck_leave_dates CHECK(end_date >= start_date);
+              ALTER TABLE leave_requests ADD CONSTRAINT ck_leave_status CHECK(status IN ('EN_ATTENTE','APPROUVEE','REFUSEE','ANNULEE'));
