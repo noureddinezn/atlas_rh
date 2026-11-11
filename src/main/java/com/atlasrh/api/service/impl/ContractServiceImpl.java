@@ -5,8 +5,6 @@ import com.atlasrh.api.dto.response.ContractResponseDTO;
 import com.atlasrh.api.entity.Contract;
 import com.atlasrh.api.entity.Employee;
 import com.atlasrh.api.entity.enums.ContractType;
-import com.atlasrh.api.exception.BadRequestException;
-import com.atlasrh.api.exception.BusinessConflictException;
 import com.atlasrh.api.exception.ResourceNotFoundException;
 import com.atlasrh.api.mapper.ContractMapper;
 import com.atlasrh.api.repository.ContractRepository;
@@ -38,16 +36,16 @@ public class ContractServiceImpl implements ContractService {
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + requestDto.employeeId()));
 
         if (contractRepository.existsByEmployeeIdAndActiveTrue(requestDto.employeeId())) {
-            throw new BusinessConflictException("Employee already has an active contract in progress");
+            throw new IllegalStateException("Employee already has an active contract in progress");
         }
 
-        if ((requestDto.type() == ContractType.CDD || requestDto.type() == ContractType.STAGE)
-                && requestDto.endDate() == null) {
-            throw new BadRequestException("End date is mandatory for CDD and STAGE contracts");
+        boolean needsEndDate = requestDto.type() == ContractType.CDD || requestDto.type() == ContractType.STAGE;
+        if (needsEndDate && requestDto.endDate() == null) {
+            throw new IllegalArgumentException("End date is mandatory for CDD and STAGE contracts");
         }
 
         if (requestDto.endDate() != null && requestDto.endDate().isBefore(requestDto.startDate())) {
-            throw new BadRequestException("Contract end date cannot be before start date");
+            throw new IllegalArgumentException("Contract end date cannot be before start date");
         }
 
         Contract contract = contractMapper.toEntity(requestDto);
@@ -66,14 +64,15 @@ public class ContractServiceImpl implements ContractService {
         Contract contract = contractRepository.findById(contractId)
                 .orElseThrow(() -> new ResourceNotFoundException("Contract not found with ID: " + contractId));
 
-        if (!Boolean.TRUE.equals(contract.getActive())) {
-            throw new BusinessConflictException("Contract is already terminated");
+        if (contract.getActive() == null || contract.getActive() == false) {
+            throw new IllegalStateException("Contract is already terminated");
         }
-
+        LocalDate today = LocalDate.now();
+        if (contract.getStartDate().isAfter(today)) {
+            throw new IllegalArgumentException("Cannot terminate a contract before its start date");
+        }
         contract.setActive(false);
-        if (contract.getEndDate() == null || contract.getEndDate().isAfter(LocalDate.now())) {
-            contract.setEndDate(LocalDate.now());
-        }
+        contract.setEndDate(today);
 
         Contract updatedContract = contractRepository.save(contract);
         return contractMapper.toResponseDto(updatedContract);
@@ -86,9 +85,10 @@ public class ContractServiceImpl implements ContractService {
             throw new ResourceNotFoundException("Employee not found with ID: " + employeeId);
         }
 
-        return contractRepository.findByEmployeeIdOrderByStartDateDesc(employeeId)
-                .stream()
-                .map(contractMapper::toResponseDto)
+        List<Contract> contracts = contractRepository.findByEmployeeIdOrderByStartDateDesc(employeeId);
+        return contracts.stream()
+                .map(contract -> contractMapper.toResponseDto(contract))
                 .toList();
     }
+
 }

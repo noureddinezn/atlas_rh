@@ -10,6 +10,12 @@ import org.mapstruct.MappingTarget;
 @Mapper(componentModel = "spring")
 public interface EmployeeMapper {
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "department", ignore = true)
+    @Mapping(target = "manager", ignore = true)
+    @Mapping(target = "team", ignore = true)
+    @Mapping(target = "contracts", ignore = true)
+    @Mapping(target = "leaveRequests", ignore = true)
     Employee toEntity(EmployeeRequestDTO dto);
 
     @Mapping(target = "departmentId", source = "department.id")
@@ -19,5 +25,11 @@ public interface EmployeeMapper {
     @Mapping(target = "managerLastName", source = "manager.lastName")
     EmployeeResponseDTO toResponseDto(Employee entity);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "department", ignore = true)
+    @Mapping(target = "manager", ignore = true)
+    @Mapping(target = "team", ignore = true)
+    @Mapping(target = "contracts", ignore = true)
+    @Mapping(target = "leaveRequests", ignore = true)
     void updateEntityFromDto(EmployeeRequestDTO dto, @MappingTarget Employee entity);
 }

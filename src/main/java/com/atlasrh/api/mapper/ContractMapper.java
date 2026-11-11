@@ -9,6 +9,9 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface ContractMapper {
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "employee", ignore = true)
+    @Mapping(target = "active", constant = "true")
     Contract toEntity(ContractRequestDTO dto);
 
     @Mapping(target = "employeeId", source = "employee.id")

@@ -3,7 +3,6 @@ package com.atlasrh.api.service.impl;
 import com.atlasrh.api.dto.request.DepartmentRequestDTO;
 import com.atlasrh.api.dto.response.DepartmentResponseDTO;
 import com.atlasrh.api.entity.Department;
-import com.atlasrh.api.exception.BusinessConflictException;
 import com.atlasrh.api.exception.ResourceNotFoundException;
 import com.atlasrh.api.mapper.DepartmentMapper;
 import com.atlasrh.api.repository.DepartmentRepository;
@@ -29,7 +28,7 @@ public class DepartmentServiceImpl implements DepartmentService {
         log.info("Creating department with name: {}", requestDto.name());
 
         if (departmentRepository.existsByNameIgnoreCase(requestDto.name())) {
-            throw new BusinessConflictException("Department with name '" + requestDto.name() + "' already exists");
+            throw new IllegalStateException("Department with name '" + requestDto.name() + "' already exists");
         }
 
         Department department = departmentMapper.toEntity(requestDto);
@@ -42,12 +41,11 @@ public class DepartmentServiceImpl implements DepartmentService {
     public DepartmentResponseDTO updateDepartment(Long id, DepartmentRequestDTO requestDto) {
         log.info("Updating department ID: {}", id);
 
-        Department department = departmentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Department not found with ID: " + id));
+        Department department = getDepartment(id);
 
-        if (!department.getName().equalsIgnoreCase(requestDto.name())
-                && departmentRepository.existsByNameIgnoreCase(requestDto.name())) {
-            throw new BusinessConflictException("Department with name '" + requestDto.name() + "' already exists");
+        boolean nameChanged = !department.getName().equalsIgnoreCase(requestDto.name());
+        if (nameChanged && departmentRepository.existsByNameIgnoreCase(requestDto.name())) {
+            throw new IllegalStateException("Department with name '" + requestDto.name() + "' already exists");
         }
 
         departmentMapper.updateEntityFromDto(requestDto, department);
@@ -58,17 +56,16 @@ public class DepartmentServiceImpl implements DepartmentService {
     @Override
     @Transactional(readOnly = true)
     public DepartmentResponseDTO getDepartmentById(Long id) {
-        Department department = departmentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Department not found with ID: " + id));
+        Department department = getDepartment(id);
         return departmentMapper.toResponseDto(department);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<DepartmentResponseDTO> getAllDepartments() {
-        return departmentRepository.findAll()
-                .stream()
-                .map(departmentMapper::toResponseDto)
+        List<Department> departments = departmentRepository.findAll();
+        return departments.stream()
+                .map(department -> departmentMapper.toResponseDto(department))
                 .toList();
     }
 
@@ -77,13 +74,17 @@ public class DepartmentServiceImpl implements DepartmentService {
     public void deleteDepartment(Long id) {
         log.info("Deleting department ID: {}", id);
 
-        Department department = departmentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Department not found with ID: " + id));
+        Department department = getDepartment(id);
 
         if (department.getEmployees() != null && !department.getEmployees().isEmpty()) {
-            throw new BusinessConflictException("Cannot delete department because it contains assigned employees");
+            throw new IllegalStateException("Cannot delete department because it contains assigned employees");
         }
 
         departmentRepository.delete(department);
+    }
+
+    private Department getDepartment(Long id) {
+        return departmentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Department not found with ID: " + id));
     }
 }
