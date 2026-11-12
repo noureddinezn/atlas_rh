@@ -189,4 +189,12 @@ class DepartmentControllerTest extends ControllerTestSupport {
         verifyNoInteractions(service);
     }
 
+    @ParameterizedTest
+    @MethodSource("invalidBodies")
+    void shouldRejectInvalidUpdateBody(String body) throws Exception {
+        mvc.perform(put("/api/departments/1").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.status").value(400));
+        verifyNoInteractions(service);
+    }
+
 }
