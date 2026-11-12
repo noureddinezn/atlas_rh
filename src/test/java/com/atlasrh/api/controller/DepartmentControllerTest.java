@@ -63,4 +63,30 @@ class DepartmentControllerTest extends ControllerTestSupport {
         verify(service).createDepartment(dto);
     }
 
+    @Test
+    void shouldUpdate() throws Exception {
+        var expected = response;
+        when(service.updateDepartment(1L, dto)).thenReturn(expected);
+        mvc.perform(put("/api/departments/1").contentType(MediaType.APPLICATION_JSON).content(VALID))
+                .andExpect(status().is(200))
+                .andExpect(content().json(json.writeValueAsString(expected), true));
+        verify(service).updateDepartment(1L, dto);
+        verifyNoMoreInteractions(service);
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {400, 404, 409})
+    void shouldMapUpdateServiceErrors(int statusCode) throws Exception {
+        RuntimeException error = switch (statusCode) {
+            case 400 -> new IllegalArgumentException("Invalid request");
+            case 404 -> new ResourceNotFoundException("Not found");
+            default -> new IllegalStateException("Conflict");
+        };
+        doThrow(error).when(service).updateDepartment(1L, dto);
+        mvc.perform(put("/api/departments/1").contentType(MediaType.APPLICATION_JSON).content(VALID)).andExpect(status().is(statusCode))
+                .andExpect(jsonPath("$.status").value(statusCode))
+                .andExpect(jsonPath("$.message").value(error.getMessage()));
+        verify(service).updateDepartment(1L, dto);
+    }
+
 }
