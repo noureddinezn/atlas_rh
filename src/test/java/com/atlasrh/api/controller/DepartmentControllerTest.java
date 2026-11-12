@@ -48,4 +48,19 @@ class DepartmentControllerTest extends ControllerTestSupport {
         verifyNoMoreInteractions(service);
     }
 
+    @ParameterizedTest
+    @ValueSource(ints = {400, 404, 409})
+    void shouldMapCreateServiceErrors(int statusCode) throws Exception {
+        RuntimeException error = switch (statusCode) {
+            case 400 -> new IllegalArgumentException("Invalid request");
+            case 404 -> new ResourceNotFoundException("Not found");
+            default -> new IllegalStateException("Conflict");
+        };
+        doThrow(error).when(service).createDepartment(dto);
+        mvc.perform(post("/api/departments").contentType(MediaType.APPLICATION_JSON).content(VALID)).andExpect(status().is(statusCode))
+                .andExpect(jsonPath("$.status").value(statusCode))
+                .andExpect(jsonPath("$.message").value(error.getMessage()));
+        verify(service).createDepartment(dto);
+    }
+
 }
