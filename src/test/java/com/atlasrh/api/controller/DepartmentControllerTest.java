@@ -148,4 +148,28 @@ class DepartmentControllerTest extends ControllerTestSupport {
         verify(service).getAllDepartments();
     }
 
+    @Test
+    void shouldDelete() throws Exception {
+        mvc.perform(delete("/api/departments/1"))
+                .andExpect(status().is(204))
+                .andExpect(content().string(""));
+        verify(service).deleteDepartment(1L);
+        verifyNoMoreInteractions(service);
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {400, 404, 409})
+    void shouldMapDeleteServiceErrors(int statusCode) throws Exception {
+        RuntimeException error = switch (statusCode) {
+            case 400 -> new IllegalArgumentException("Invalid request");
+            case 404 -> new ResourceNotFoundException("Not found");
+            default -> new IllegalStateException("Conflict");
+        };
+        doThrow(error).when(service).deleteDepartment(1L);
+        mvc.perform(delete("/api/departments/1")).andExpect(status().is(statusCode))
+                .andExpect(jsonPath("$.status").value(statusCode))
+                .andExpect(jsonPath("$.message").value(error.getMessage()));
+        verify(service).deleteDepartment(1L);
+    }
+
 }
