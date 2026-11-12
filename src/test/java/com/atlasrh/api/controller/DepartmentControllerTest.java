@@ -172,4 +172,21 @@ class DepartmentControllerTest extends ControllerTestSupport {
         verify(service).deleteDepartment(1L);
     }
 
+    static Stream<String> invalidBodies() {
+        return Stream.of(
+                "{\"name\":null,\"description\":\"Engineering\"}",
+                "{\"name\":\" \",\"description\":\"Engineering\"}",
+                "{\"name\":\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\",\"description\":\"Engineering\"}",
+                "{\"name\":\"IT\",\"description\":\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"}"
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("invalidBodies")
+    void shouldRejectInvalidCreateBody(String body) throws Exception {
+        mvc.perform(post("/api/departments").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.status").value(400));
+        verifyNoInteractions(service);
+    }
+
 }
