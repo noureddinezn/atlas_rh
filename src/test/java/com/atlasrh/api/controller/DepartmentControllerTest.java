@@ -190,6 +190,14 @@ class DepartmentControllerTest extends ControllerTestSupport {
     }
 
     @ParameterizedTest
+    @ValueSource(strings = {"{", "", "{\"unknown\":true}"})
+    void shouldRejectMalformedOrMissingCreateBody(String body) throws Exception {
+        mvc.perform(post("/api/departments").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(service);
+    }
+
+    @ParameterizedTest
     @MethodSource("invalidBodies")
     void shouldRejectInvalidUpdateBody(String body) throws Exception {
         mvc.perform(put("/api/departments/1").contentType(MediaType.APPLICATION_JSON).content(body))
@@ -197,4 +205,17 @@ class DepartmentControllerTest extends ControllerTestSupport {
         verifyNoInteractions(service);
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"{", "", "{\"unknown\":true}"})
+    void shouldRejectMalformedOrMissingUpdateBody(String body) throws Exception {
+        mvc.perform(put("/api/departments/1").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(service);
+    }
+
+    @Test
+    void shouldRejectNonNumericId() throws Exception {
+        mvc.perform(get("/api/departments/invalid")).andExpect(status().isBadRequest());
+        verifyNoInteractions(service);
+    }
 }
