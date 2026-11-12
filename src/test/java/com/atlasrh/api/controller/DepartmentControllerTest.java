@@ -115,4 +115,22 @@ class DepartmentControllerTest extends ControllerTestSupport {
         verify(service).getDepartmentById(1L);
     }
 
+    @Test
+    void shouldList() throws Exception {
+        var expected = List.of(response);
+        when(service.getAllDepartments()).thenReturn(expected);
+        mvc.perform(get("/api/departments"))
+                .andExpect(status().is(200))
+                .andExpect(content().json(json.writeValueAsString(expected), true));
+        verify(service).getAllDepartments();
+        verifyNoMoreInteractions(service);
+    }
+
+    @Test
+    void shouldReturnEmptyList() throws Exception {
+        when(service.getAllDepartments()).thenReturn(List.of());
+        mvc.perform(get("/api/departments")).andExpect(status().isOk()).andExpect(content().json("[]"));
+        verify(service).getAllDepartments();
+    }
+
 }
