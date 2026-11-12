@@ -133,4 +133,19 @@ class DepartmentControllerTest extends ControllerTestSupport {
         verify(service).getAllDepartments();
     }
 
+    @ParameterizedTest
+    @ValueSource(ints = {400, 404, 409})
+    void shouldMapListServiceErrors(int statusCode) throws Exception {
+        RuntimeException error = switch (statusCode) {
+            case 400 -> new IllegalArgumentException("Invalid request");
+            case 404 -> new ResourceNotFoundException("Not found");
+            default -> new IllegalStateException("Conflict");
+        };
+        doThrow(error).when(service).getAllDepartments();
+        mvc.perform(get("/api/departments")).andExpect(status().is(statusCode))
+                .andExpect(jsonPath("$.status").value(statusCode))
+                .andExpect(jsonPath("$.message").value(error.getMessage()));
+        verify(service).getAllDepartments();
+    }
+
 }
